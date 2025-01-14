@@ -29,7 +29,7 @@ This project aims to improve the robustness and generalization of multilingual s
 ---
 
 ## **Features**
-- **Pre-trained Models**: Supports models like `xlm-roberta-base` and `ModernBERT`.
+- **Pre-trained Models**: Supports models like `xlm-roberta` and `BERT`.
 - **Noise Reduction Techniques**: Includes implementations of:
   - **Small-Loss Trick (ST)**
   - **Label Smoothing (LabS)**
