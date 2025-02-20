@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*- 
 
-import complexity
+import Baseline
 import argparse
 
 parser = argparse.ArgumentParser(description="A Transformer Model for Complexity Classification")
@@ -24,12 +24,12 @@ parser.add_argument('-v', '--verbosity', type=int, default=1)
 
 args = parser.parse_args()
 
-complexity.seed = args.seed
+Baseline.seed = args.seed
 
 if args.inputfile:
-    train_dataset, val_dataset = complexity.prepare_datasets(args.inputfile, args.sep, args.valsplit)
+    train_dataset, val_dataset = Baseline.prepare_datasets(args.inputfile, args.sep, args.valsplit)
 
-    complexity.train_model(
+    Baseline.train_model(
         model_name=args.mname,
         train_dataset=train_dataset,
         val_dataset=val_dataset,
@@ -42,8 +42,8 @@ if args.inputfile:
     )
 
 if args.testfile:
-    test_dataset, _ = complexity.prepare_datasets(args.testfile, args.sep)
-    metrics=complexity.test_model(
+    test_dataset, _ = Baseline.prepare_datasets(args.testfile, args.sep)
+    metrics=Baseline.test_model(
         model_name=args.local,
         test_dataset=test_dataset,
         )
