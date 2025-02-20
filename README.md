@@ -1,8 +1,4 @@
 
-# Cross-Lingual Sentence Complexity Classification
-
-This repository implements a cross-lingual sentence-difficulty classification framework in the **"From Babel to Brilliance: De-Noising Techniques for Cross-Lingual Sentence-Difficulty Classifiers"** . The framework integrates pre-trained language models, noise reduction techniques, and evaluation pipelines for cross-lingual classification tasks.
-
 
 ## **Table of Contents**
 1. [Overview](#overview)
@@ -138,7 +134,7 @@ Results are saved as a CSV file for further analysis.
 ---
 
 ## **Citation**
-If you use this repository or methodology in your research, please cite the paper:
+
 
 ```bibtex
 @inproceedings{babel_to_brilliance,
