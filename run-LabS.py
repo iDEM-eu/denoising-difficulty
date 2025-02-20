@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import complexity
+import LabS
 import argparse
 
 parser = argparse.ArgumentParser(description="A Transformer Model with Label Smoothing")
@@ -21,17 +21,18 @@ parser.add_argument('--eval_steps', type=int, default=1000)
 parser.add_argument('--valsplit', type=float, default=0.2)
 parser.add_argument('--early_stopping', type=int, default=2, help='Number of epochs with no improvement before stopping')
 parser.add_argument('-v', '--verbosity', type=int, default=1)
+parser.add_argument('--smoothing_factor', type=float, default=0.1)
 args = parser.parse_args()
 
-complexity.seed = args.seed
+LabS.seed = args.seed
 
 if args.use_wandb:
     import wandb
     wandb.init(project=args.projectname, name="Label_Smoothing_Transformer")
 
 if args.inputfile:
-    train_dataset, val_dataset = complexity.prepare_datasets(args.inputfile, args.sep, args.valsplit)
-    complexity.train_model(
+    train_dataset, val_dataset = LabS.prepare_datasets(args.inputfile, args.sep, args.valsplit)
+    LabS.train_model(
         model_name=args.mname,
         train_dataset=train_dataset,
         val_dataset=val_dataset,
@@ -45,8 +46,8 @@ if args.inputfile:
     )
 
 if args.testfile:
-    test_dataset, _ = complexity.prepare_datasets(args.testfile, args.sep)
-    metrics = complexity.test_model(
+    test_dataset, _ = LabS.prepare_datasets(args.testfile, args.sep)
+    metrics = LabS.test_model(
         model_name=args.local,
         test_dataset=test_dataset,
     )
