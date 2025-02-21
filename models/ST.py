@@ -1,18 +1,17 @@
 import os
+import json
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
-from transformers import AutoTokenizer, AutoModel, AutoModelForSequenceClassification
+from transformers import AutoTokenizer, AutoModel
 import pandas as pd
 import numpy as np
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support, log_loss, brier_score_loss, roc_auc_score, confusion_matrix
-from scipy.special import softmax
-from scipy.stats import entropy
 import wandb
-import matplotlib.pyplot as plt
-import seaborn as sns
-import time
 from utils.metrics_utils import compute_generalization_metrics, compute_metrics
+
+def load_config(config_path):
+    with open(config_path, "r") as f:
+        return json.load(f)
 
 def initialize_wandb(project_name, run_name):
     wandb.init(project=project_name, name=run_name)
@@ -57,24 +56,11 @@ class AdvancedNN(nn.Module):
     def __init__(self, input_dim):
         super(AdvancedNN, self).__init__()
         self.model = nn.Sequential(
-            nn.Linear(input_dim, 1024),
-            nn.BatchNorm1d(1024),
-            nn.LeakyReLU(0.1),
-            nn.Dropout(0.3),
-            nn.Linear(1024, 512),
-            nn.BatchNorm1d(512),
-            nn.LeakyReLU(0.1),
-            nn.Dropout(0.3),
-            nn.Linear(512, 256),
-            nn.BatchNorm1d(256),
-            nn.LeakyReLU(0.1),
-            nn.Dropout(0.3),
-            nn.Linear(256, 128),
-            nn.BatchNorm1d(128),
-            nn.LeakyReLU(0.1),
-            nn.Dropout(0.3),
-            nn.Linear(128, 1),
-            nn.Sigmoid()
+            nn.Linear(input_dim, 1024), nn.LeakyReLU(0.1), nn.Dropout(0.3),
+            nn.Linear(1024, 512), nn.LeakyReLU(0.1), nn.Dropout(0.3),
+            nn.Linear(512, 256), nn.LeakyReLU(0.1), nn.Dropout(0.3),
+            nn.Linear(256, 128), nn.LeakyReLU(0.1), nn.Dropout(0.3),
+            nn.Linear(128, 1), nn.Sigmoid()
         )
     
     def forward(self, x):
@@ -94,60 +80,42 @@ def train_model(model, dataloader, optimizer, criterion, num_epochs, device):
 
 def evaluate_model(model, dataloader, device):
     model.eval()
-    all_preds, all_labels, all_logits = [], [], []
+    all_logits, all_labels = [], []
     with torch.no_grad():
         for sentences, labels in dataloader:
             sentences, labels = sentences.to(device), labels.to(device)
             outputs = model(sentences).squeeze()
             all_logits.extend(outputs.cpu().numpy())
-            all_preds.extend((outputs > 0.5).float().cpu().numpy())
             all_labels.extend(labels.cpu().numpy())
-    
-    all_labels = np.array(all_labels)
-    all_preds = np.array(all_preds)
-    all_logits = np.array(all_logits)
-    probabilities = softmax(all_logits.reshape(-1, 1), axis=1)
-    accuracy = accuracy_score(all_labels, all_preds)
-    precision, recall, f1, _ = precision_recall_fscore_support(all_labels, all_preds, average='weighted')
-    log_loss_value = log_loss(all_labels, probabilities)
-    brier_score = brier_score_loss(all_labels, probabilities[:, 0])
-    prediction_entropy = np.mean(entropy(probabilities, axis=1))
-    conf_matrix = confusion_matrix(all_labels, all_preds)
-    try:
-        roc_auc = roc_auc_score(all_labels, probabilities)
-    except ValueError:
-        roc_auc = None
-    
-    wandb.log({
-        "Accuracy": accuracy,
-        "Precision": precision,
-        "Recall": recall,
-        "F1": f1,
-        "ROC AUC": roc_auc,
-        "Log Loss": log_loss_value,
-        "Brier Score": brier_score,
-        "Prediction Entropy": prediction_entropy
-    })
-    return accuracy, precision, recall, f1, roc_auc, conf_matrix
+    metrics = compute_generalization_metrics(np.array(all_logits).reshape(-1, 1), np.array(all_labels))
+    wandb.log(metrics)
+    return metrics
 
 def save_model(model, tokenizer, output_dir):
     os.makedirs(output_dir, exist_ok=True)
     torch.save(model.state_dict(), os.path.join(output_dir, "pytorch_model.bin"))
     tokenizer.save_pretrained(output_dir)
 
-def main():
+def main(config_path):
+    config = load_config(config_path)
     device = get_device()
-    initialize_wandb("General-model-English", "Sent-ST")
-    tokenizer = AutoTokenizer.from_pretrained("bert-base-multilingual-cased")
-    model = AdvancedNN(768)
-    criterion = nn.BCEWithLogitsLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    df = pd.read_csv("./combined_data/Sent-Spacy/combined_data_en.ol", sep='\t', on_bad_lines='skip')
-    dataset = TextDataset(df['Sentence'].tolist(), df['Label'].tolist(), tokenizer, "bert-base-multilingual-cased", device)
-    dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
-    train_model(model, dataloader, optimizer, criterion, num_epochs=5, device=device)
-    save_model(model, tokenizer, "./Sent-ST-bert-model")
+    initialize_wandb(config["wandb_project"], config["wandb_run"])
+    tokenizer = AutoTokenizer.from_pretrained(config["tokenizer_model"])
+    model = AdvancedNN(config["model_input_dim"])
+    criterion = getattr(nn, config["loss_function"])()
+    optimizer = getattr(torch.optim, config["optimizer"])(model.parameters(), lr=config["learning_rate"])
+    df = pd.read_csv(config["dataset_path"], sep=config["separator"], on_bad_lines='skip')
+    dataset = TextDataset(df[config["text_column"]].tolist(), df[config["label_column"]].tolist(), tokenizer, config["tokenizer_model"], device)
+    dataloader = DataLoader(dataset, batch_size=config["batch_size"], shuffle=True)
+    train_model(model, dataloader, optimizer, criterion, num_epochs=config["num_epochs"], device=device)
+    metrics = evaluate_model(model, dataloader, device)
+    print("Evaluation Metrics:", metrics)
+    save_model(model, tokenizer, config["output_model_dir"])
     wandb.finish()
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=str, required=True, help="Path to the JSON config file")
+    args = parser.parse_args()
+    main(args.config)
