@@ -2,7 +2,13 @@ import os
 import json
 import torch
 import pandas as pd
-from transformers import BertTokenizer, BertForSequenceClassification, Trainer, TrainingArguments, AdamW
+from transformers import (
+    AutoTokenizer,
+    AutoModelForSequenceClassification,
+    Trainer,
+    TrainingArguments,
+    DataCollatorWithPadding,AdamW
+)
 from torch.utils.data import Dataset, DataLoader, RandomSampler
 from sklearn.model_selection import train_test_split
 import wandb
@@ -38,7 +44,7 @@ class TextDataset(Dataset):
 def train_and_validate(config):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     initialize_wandb(config["wandb_project"], config["wandb_run"])
-    tokenizer = BertTokenizer.from_pretrained(config["tokenizer_model"])
+    tokenizer = AutoTokenizer.from_pretrained(config["tokenizer_model"])
     df = pd.read_csv(config["dataset_path"], sep=config["separator"])
     train_df, val_df = train_test_split(df, test_size=config["valsplit"], random_state=config["seed"])
     train_dataset = TextDataset(train_df, tokenizer, config["text_column"], config["label_column"])
@@ -51,7 +57,7 @@ def train_and_validate(config):
     T = T * (1 - epsilon) + epsilon / T.size(1)
     T_inv = torch.inverse(T)
     
-    model = BertForSequenceClassification.from_pretrained(config["tokenizer_model"], num_labels=len(df[config["label_column"].unique()])).to(device)
+    model = AutoModelForSequenceClassification.from_pretrained(config["tokenizer_model"], num_labels=len(df[config["label_column"].unique()])).to(device)
     optimizer = AdamW(model.parameters(), lr=config["learning_rate"])
     
     training_args = TrainingArguments(
