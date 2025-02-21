@@ -53,6 +53,7 @@
             "valsplit": 0.2,
             "seed": 42,
             "testfile": "./data/label_smoothing_test.csv"
+            "label_smoothing_epsilon": 0.1
         },
         "ntm": {
             "wandb_project": "Noise-Transition-Matrix",
