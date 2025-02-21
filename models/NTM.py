@@ -8,6 +8,8 @@ from scipy.stats import entropy
 import time
 import numpy as np
 import wandb
+from utils.metrics_utils import compute_generalization_metrics, compute_metrics
+
 # Load your datasets
 df = pd.read_csv('./combined_data/200-token/sbert_isnoisy_combined_data_200_fr.ol', sep='\t', on_bad_lines='skip')
 wandb.init(project="General-model-French", name="ntm_sBERT")
