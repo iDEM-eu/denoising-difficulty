@@ -15,21 +15,5 @@
             "epochs": 4,
             "batch_size": 32
         }
-    },
-    "denoising": {
-        "denoise_A": {
-            "epochs": 5,
-            "batch_size": 32,
-            "learning_rate": 0.001,
-            "dropout_rate": 0.2,
-            "filter_size": 128
-        },
-        "denoise_B": {
-            "epochs": 10,
-            "batch_size": 16,
-            "learning_rate": 0.0001,
-            "kernel_size": 3,
-            "stride": 2
-        }
     }
 }
