@@ -19,6 +19,7 @@ import re
 from scipy.special import softmax
 from scipy.stats import entropy
 import numpy as np
+from utils.metrics_utils import compute_generalization_metrics, compute_metrics
 
 
 text_column = "Clean_Text"  # name of the text column
