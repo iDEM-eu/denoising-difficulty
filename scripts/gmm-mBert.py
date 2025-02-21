@@ -80,7 +80,7 @@ def optimize_gmm(data_path, output_dir, n_trials=30):
     sampler = optuna.samplers.TPESampler()
     study = optuna.create_study(direction='minimize', sampler=sampler)
     study.optimize(lambda trial: objective(trial, data_path, output_dir, tokenizer, model), 
-                   n_trials=n_trials, n_jobs=1)  # Reduce to 1 job at a time to save memory
+                   n_trials=n_trials, n_jobs=1) 
     return study
 
 # Run Optimization
