@@ -13,7 +13,8 @@
             "text_column": "Sentence",
             "label_column": "Label",
             "batch_size": 32,
-            "num_epochs": 5,
+            "num_epochs": 10,
+            "early_stopping_patience": 3,
             "output_model_dir": "./Sent-ST-bert-model"
         },
         "baseline": {
@@ -29,7 +30,8 @@
             "text_column": "text",
             "label_column": "label",
             "batch_size": 16,
-            "num_epochs": 3,
+            "num_epochs": 10,
+            "early_stopping_patience": 3,
             "output_model_dir": "./Baseline-Model"
         }
     }
