@@ -13,6 +13,7 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support, roc
 from torch.utils.data import Dataset
 import wandb
 from sklearn.model_selection import train_test_split
+from utils.metrics_utils import compute_generalization_metrics, compute_metrics
 
 def label_smoothing(labels, num_classes, epsilon):
     batch_size = labels.size(0)
