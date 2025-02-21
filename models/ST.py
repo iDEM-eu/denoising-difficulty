@@ -9,9 +9,10 @@ import numpy as np
 import wandb
 from utils.metrics_utils import compute_generalization_metrics, compute_metrics
 
-def load_config(config_path):
+def load_config(config_path, model_name):
     with open(config_path, "r") as f:
-        return json.load(f)
+        config = json.load(f)
+    return config["models"][model_name]
 
 def initialize_wandb(project_name, run_name):
     wandb.init(project=project_name, name=run_name)
@@ -66,10 +67,14 @@ class AdvancedNN(nn.Module):
     def forward(self, x):
         return self.model(x)
 
-def train_model(model, dataloader, optimizer, criterion, num_epochs, device):
+def train_model(model, dataloader, optimizer, criterion, num_epochs, patience, device):
     model.to(device)
     model.train()
+    best_loss = float("inf")
+    patience_counter = 0
+    
     for epoch in range(num_epochs):
+        epoch_loss = 0.0
         for sentences, labels in dataloader:
             sentences, labels = sentences.to(device), labels.to(device)
             optimizer.zero_grad()
@@ -77,6 +82,20 @@ def train_model(model, dataloader, optimizer, criterion, num_epochs, device):
             loss = criterion(outputs, labels)
             loss.mean().backward()
             optimizer.step()
+            epoch_loss += loss.item()
+        
+        avg_loss = epoch_loss / len(dataloader)
+        print(f"Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.4f}")
+        
+        # Early Stopping Logic
+        if avg_loss < best_loss:
+            best_loss = avg_loss
+            patience_counter = 0
+        else:
+            patience_counter += 1
+            if patience_counter >= patience:
+                print("Early stopping triggered.")
+                break
 
 def evaluate_model(model, dataloader, device):
     model.eval()
@@ -96,8 +115,8 @@ def save_model(model, tokenizer, output_dir):
     torch.save(model.state_dict(), os.path.join(output_dir, "pytorch_model.bin"))
     tokenizer.save_pretrained(output_dir)
 
-def main(config_path):
-    config = load_config(config_path)
+def main(config_path, model_name):
+    config = load_config(config_path, model_name)
     device = get_device()
     initialize_wandb(config["wandb_project"], config["wandb_run"])
     tokenizer = AutoTokenizer.from_pretrained(config["tokenizer_model"])
@@ -105,9 +124,9 @@ def main(config_path):
     criterion = getattr(nn, config["loss_function"])()
     optimizer = getattr(torch.optim, config["optimizer"])(model.parameters(), lr=config["learning_rate"])
     df = pd.read_csv(config["dataset_path"], sep=config["separator"], on_bad_lines='skip')
-    dataset = TextDataset(df[config["text_column"]].tolist(), df[config["label_column"]].tolist(), tokenizer, config["tokenizer_model"], device)
+    dataset = TextDataset(df[config["text_column"]].tolist(), df["label_column"].tolist(), tokenizer, config["tokenizer_model"], device)
     dataloader = DataLoader(dataset, batch_size=config["batch_size"], shuffle=True)
-    train_model(model, dataloader, optimizer, criterion, num_epochs=config["num_epochs"], device=device)
+    train_model(model, dataloader, optimizer, criterion, num_epochs=config["num_epochs"], patience=config["early_stopping_patience"], device=device)
     metrics = evaluate_model(model, dataloader, device)
     print("Evaluation Metrics:", metrics)
     save_model(model, tokenizer, config["output_model_dir"])
@@ -117,5 +136,6 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, required=True, help="Path to the JSON config file")
+    parser.add_argument("--model", type=str, required=True, help="Model name from config")
     args = parser.parse_args()
-    main(args.config)
+    main(args.config, args.model)
