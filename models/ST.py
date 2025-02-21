@@ -12,6 +12,7 @@ import wandb
 import matplotlib.pyplot as plt
 import seaborn as sns
 import time
+from utils.metrics_utils import compute_generalization_metrics, compute_metrics
 
 def initialize_wandb(project_name, run_name):
     wandb.init(project=project_name, name=run_name)
