@@ -17,6 +17,8 @@ from transformers import (
     BertTokenizer, BertForSequenceClassification, AdamW
 )
 from transformers import XLMRobertaTokenizer, XLMRobertaForSequenceClassification
+from utils.metrics_utils import compute_generalization_metrics, compute_metrics
+
 # ----------------------------------------------------------------------
 # 1) Hyperparameters & Paths
 # ----------------------------------------------------------------------
