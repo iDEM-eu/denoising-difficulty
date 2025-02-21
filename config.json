@@ -33,6 +33,26 @@
             "num_epochs": 10,
             "early_stopping_patience": 3,
             "output_model_dir": "./Baseline-Model"
+        },
+        "label_smoothing": {
+            "wandb_project": "Label-Smoothing-Model",
+            "wandb_run": "Label-Smoothing-Transformer",
+            "tokenizer_model": "bert-base-uncased",
+            "loss_function": "CrossEntropyLoss",
+            "optimizer": "Adam",
+            "learning_rate": 0.00005,
+            "dataset_path": "./data/label_smoothing_train.csv",
+            "separator": "\t",
+            "text_column": "Clean_Text",
+            "label_column": "Label",
+            "batch_size": 32,
+            "num_epochs": 10,
+            "early_stopping_patience": 3,
+            "smoothing_factor": 0.1,
+            "output_model_dir": "./Label-Smoothing-Model",
+            "valsplit": 0.2,
+            "seed": 42,
+            "testfile": "./data/label_smoothing_test.csv"
         }
     }
 }
