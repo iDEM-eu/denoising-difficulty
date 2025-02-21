@@ -1,0 +1,11 @@
+{
+    "test_files": {
+        "ca": "./combined_data/Sent-Spacy/combined_data_ca.ol",
+        "es": "./combined_data/Sent-Spacy/combined_data_es.ol",
+        "fr": "./combined_data/Sent-Spacy/combined_data_fr.ol",
+        "it": "./combined_data/Sent-Spacy/combined_data_it.ol",
+        "ru": "./combined_data/Sent-Spacy/combined_data_ru.ol"
+    },
+    "text_column": "Sentence",
+    "label_column": "Label"
+}
