@@ -4,16 +4,38 @@
             "learning_rate": 1e-5,
             "epochs": 3,
             "batch_size": 8
-        },
-        "ntm": {
+        }
+    },
+    "denoising": {
+        "ct": {
             "learning_rate": 1e-4,
             "epochs": 5,
             "batch_size": 16
         },
-        "gmm-sbert": {
+        "labs": {
             "learning_rate": 2e-5,
             "epochs": 4,
             "batch_size": 32
+        },
+        "ntm": {
+            "learning_rate": 3e-5,
+            "epochs": 4,
+            "batch_size": 16
+        },
+        "st": {
+            "learning_rate": 2e-5,
+            "epochs": 5,
+            "batch_size": 8
+        },
+        "gmm-sbert": {
+            "learning_rate": 1e-4,
+            "epochs": 6,
+            "batch_size": 32
+        },
+        "gmm-mbert": {
+            "learning_rate": 1e-5,
+            "epochs": 3,
+            "batch_size": 16
         }
     }
 }
