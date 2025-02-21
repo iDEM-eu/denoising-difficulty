@@ -1,1 +1,19 @@
+version: "3.8"
+services:
+  api:
+    build: .
+    command: ["api"]
+    ports:
+      - "8000:8000"
+    restart: always
+
+  train:
+    build: .
+    command: ["train", "baseline", "data/train.csv", "saved_models/Baseline"]
+    restart: "no"
+
+  test:
+    build: .
+    command: ["test", "baseline", "data/test.csv", "saved_models/Baseline"]
+    restart: "no"
 
