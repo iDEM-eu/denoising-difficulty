@@ -53,6 +53,26 @@
             "valsplit": 0.2,
             "seed": 42,
             "testfile": "./data/label_smoothing_test.csv"
+        },
+        "ntm": {
+            "wandb_project": "Noise-Transition-Matrix",
+            "wandb_run": "NTM-Training",
+            "tokenizer_model": "bert-base-multilingual-cased",
+            "loss_function": "CrossEntropyLoss",
+            "optimizer": "AdamW",
+            "learning_rate": 0.00002,
+            "dataset_path": "./combined_data/200-token/sbert_isnoisy_combined_data_200_fr.ol",
+            "separator": "\t",
+            "text_column": "Sentence",
+            "label_column": "Label",
+            "batch_size": 16,
+            "num_epochs": 10,
+            "early_stopping_patience": 3,
+            "output_model_dir": "./NTM-Model",
+            "valsplit": 0.2,
+            "seed": 42,
+            "epsilon": 1e-6,
+            "testfile": "./data/ntm_test.csv"
         }
     }
 }
