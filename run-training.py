@@ -27,7 +27,7 @@ MODEL_SCRIPTS = {
 
 # Pick the right script
 script_to_run = MODEL_SCRIPTS[MODEL_NAME]
-print(f"🚀 Running training for model: {MODEL_NAME} using {script_to_run}")
+print(f"Running training for model: {MODEL_NAME} using {script_to_run}")
 
 # Execute the script
 subprocess.run(["python", script_to_run, "--config", CONFIG_FILE, "--model", MODEL_NAME])
