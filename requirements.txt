@@ -12,4 +12,6 @@ seaborn
 wandb
 tqdm
 json5
-
+fastapi
+uvicorn
+accelerate>=0.26.0
