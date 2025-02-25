@@ -8,6 +8,7 @@ from torch.utils.data import Dataset
 from sklearn.model_selection import train_test_split
 import wandb
 from utils.metrics_utils import compute_generalization_metrics, compute_metrics
+from transformers import EarlyStoppingCallback
 
 # Load Configurations
 def load_config(config_path, model_name):
@@ -30,7 +31,7 @@ def label_smoothing(labels, num_classes, epsilon):
 class TextDataset(Dataset):
     def __init__(self, df, tokenizer, smoothing_factor=0.1):
         self.encodings = tokenizer(
-            list(df['Clean_Text'].values),
+            list(df['Sentence'].values),
             padding=True,
             truncation=True,
             max_length=512,
@@ -76,17 +77,17 @@ def train_model(config):
         save_total_limit=2,
         metric_for_best_model="accuracy",
         greater_is_better=True,
-        early_stopping_patience=config["early_stopping_patience"]
     )
 
     trainer = Trainer(
-        model=model,
-        args=training_args,
-        train_dataset=train_dataset,
-        eval_dataset=val_dataset,
-        tokenizer=tokenizer,
-        compute_metrics=compute_metrics
-    )
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=val_dataset,
+    tokenizer=tokenizer,
+    compute_metrics=compute_metrics,
+    callbacks=[EarlyStoppingCallback(early_stopping_patience=config["early_stopping_patience"])]
+)
 
     trainer.train()
     trainer.save_model(config["output_model_dir"])
@@ -112,11 +113,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, required=True, help="Path to the JSON config file")
     parser.add_argument("--model", type=str, required=True, help="Model name from config")
-    parser.add_argument("--mode", type=str, choices=["train", "test"], required=True, help="Mode: train or test")
     args = parser.parse_args()
     config = load_config(args.config, args.model)
+    train_model(config)
     
-    if args.mode == "train":
-        train_model(config)
-    elif args.mode == "test":
-        test_model(config)
