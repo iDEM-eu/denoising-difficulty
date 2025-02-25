@@ -7,6 +7,8 @@ from transformers import AutoTokenizer, AutoModel
 import pandas as pd
 import numpy as np
 import wandb
+import sys
+sys.path.append('/app')
 from utils.metrics_utils import compute_generalization_metrics, compute_metrics
 
 def load_config(config_path, model_name):
@@ -21,7 +23,7 @@ def get_device():
     return torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 class TextDataset(Dataset):
-    def __init__(self, sentences, labels, tokenizer, model_name, device, batch_size=32):
+    def __init__(self, sentences, labels, tokenizer, model_name, device, batch_size=16):
         self.sentences = sentences
         self.labels = labels
         self.tokenizer = tokenizer
@@ -124,7 +126,12 @@ def main(config_path, model_name):
     criterion = getattr(nn, config["loss_function"])()
     optimizer = getattr(torch.optim, config["optimizer"])(model.parameters(), lr=config["learning_rate"])
     df = pd.read_csv(config["dataset_path"], sep=config["separator"], on_bad_lines='skip')
-    dataset = TextDataset(df[config["text_column"]].tolist(), df["label_column"].tolist(), tokenizer, config["tokenizer_model"], device)
+    dataset = TextDataset(
+      df[config["text_column"]].tolist(),
+      df[config["label_column"]].tolist(),
+      tokenizer,
+      config["tokenizer_model"],
+      device)
     dataloader = DataLoader(dataset, batch_size=config["batch_size"], shuffle=True)
     train_model(model, dataloader, optimizer, criterion, num_epochs=config["num_epochs"], patience=config["early_stopping_patience"], device=device)
     metrics = evaluate_model(model, dataloader, device)
